@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorting Visualizer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Enhanced animations and transitions */
+    .fade-in {
+      animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Modern glassmorphism header */
+    header {
+      background: rgba(17, 24, 39, 0.8);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    /* Enhanced button styles with modern gradients */
+    button {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    /* Modern gradient backgrounds */
+    .bg-blue-500 {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .bg-green-600 {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    }
+
+    /* Add these new styles */
+    .custom-input {
+      background: rgba(55, 65, 81, 0.3);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .custom-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    #visualization {
+      background: rgba(31, 41, 55, 0.4);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      padding: 1rem;
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 400px;
+      overflow-x: auto;
+    }
+
+    .bar-container {
+      flex: 1;
+      min-width: 24px;
+      max-width: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 0 2px;
+    }
+
+    .bar {
+      width: 100%;
+      transition: height 0.3s ease, background-color 0.3s ease, transform 0.2s ease;
+      background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+      border-radius: 6px 6px 2px 2px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 30%;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      border-radius: 6px 6px 0 0;
+    }
+
+    .bar:hover {
+      transform: scaleY(1.02);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .bar-value {
+      font-size: 0.75rem;
+      color: #93c5fd;
+      font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .bar-index {
+      font-size: 0.75rem;
+      color: #60a5fa;
+      font-weight: 500;
+    }
+
+    /* Add these new dropdown styles */
+    .custom-select {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .custom-select select {
+      appearance: none;
+      background: rgba(55, 65, 81, 0.3);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.75rem 2.5rem 0.75rem 1rem;
+      border-radius: 0.5rem;
+      width: 100%;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .custom-select::after {
+      content: '';
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0.8em;
+      height: 0.5em;
+      background-color: #60a5fa;
+      clip-path: polygon(100% 0%, 0 0%, 50% 100%);
+      transition: all 0.3s ease;
+    }
+
+    .custom-select:hover select {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+    }
+
+    .custom-select:hover::after {
+      background-color: #93c5fd;
+    }
+
+    select option {
+      background-color: #1f2937;
+      color: white;
+      padding: 1rem;
+    }
+
+    select option:hover {
+      background-color: #374151;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white font-sans fade-in">
+  <header class="py-6 mb-8">
+    <div class="container mx-auto px-4">
+      <h1 class="text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">
+        Sorting Visualizer
+      </h1>
+      <p class="text-center text-gray-400 mt-2">Visualize and understand sorting algorithms in real-time</p>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- User input section -->
+    <div class="mt-8 bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Algorithm selection, array size, and speed controls -->
+        <div>
+          <label for="algorithm" class="block text-sm font-medium mb-1 text-gray-300">Select Algorithm:</label>
+          <div class="custom-select">
+            <select id="algorithm">
+              <option value="bubble">Bubble Sort</option>
+              <option value="insertion">Insertion Sort</option>
+              <option value="selection">Selection Sort</option>
+              <option value="quick">Quick Sort</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="array-size" class="block text-sm font-medium mb-1">Array Size:</label>
+          <input type="range" id="array-size" min="10" max="100" value="50" class="w-full bg-gray-700">
+          <div class="text-sm text-gray-400 mt-1">Size: <span id="array-size-display">50</span></div>
+        </div>
+
+        <div>
+          <label for="speed" class="block text-sm font-medium mb-1">Sorting Speed:</label>
+          <input type="range" id="speed" min="50" max="1000" value="200" class="w-full bg-gray-700">
+          <div class="text-sm text-gray-400 mt-1">Speed: <span id="speed-display">200ms</span></div>
+        </div>
+      </div>
+
+      <div class="flex justify-center space-x-4 mt-6">
+        <button id="generate-array" class="bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded-md">
+          Generate Array
+        </button>
+        <button id="start-sorting" class="bg-green-600 hover:bg-green-700 py-2 px-4 rounded-md">
+          Start Sorting
+        </button>
+        <button id="reset" class="bg-red-600 hover:bg-red-700 py-2 px-4 rounded-md">
+          Reset
+        </button>
+      </div>
+
+      <!-- Visualization area -->
+      <div id="visualization" class="mt-8 bg-gray-800 rounded-md h-64 flex items-end gap-1 p-4"></div>
+      <div id="current-step" class="mt-4 text-center text-gray-400">Current Step: <span id="step-display">0</span></div>
+    </div>
+
+    <input type="text" id="custom-array" 
+           class="custom-input w-full rounded-lg p-3 text-white" 
+           placeholder="e.g., 10,20,30,40">
+    
+    <button id="set-custom-array" class="bg-blue-500 hover:bg-blue-600 py-2 px-4 rounded-md mt-2">Set Array</button>
+  </main>
+
+  <footer class="py-6 text-center text-gray-400">
+    <p>Created by <a href="https://github.com/DhruvKadam-git" 
+                     class="text-blue-400 hover:text-blue-300 transition-colors duration-200"
+                     target="_blank"
+                     rel="noopener noreferrer">
+      Dhruv Kadam
+    </a></p>
+  </footer>
+</body>
+</html>
